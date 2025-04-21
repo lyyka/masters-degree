@@ -50,8 +50,15 @@ class TicketController extends Controller
         return response()->json();
     }
 
-    public function updateHolder(UpdateHolderRequest $request, TicketReservation $ticketReservation): JsonResponse
+    public function updateHolder(UpdateHolderRequest $request, TicketReservationService $service, TicketReservation $ticketReservation): JsonResponse
     {
+        try {
+            $service->updateTicketReservationHolder($request, $ticketReservation);
+        } catch (TicketReservationAlreadyCheckedIn) {
+            return response()->json(['message' => 'Ticket reservation already checked in'], 400);
+        } catch (TicketReservationAlreadyCancelled) {
+            return response()->json(['message' => 'Ticket reservation already cancelled'], 400);
+        }
 
         return response()->json();
     }

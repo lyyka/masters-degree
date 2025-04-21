@@ -5,6 +5,7 @@ namespace App\Aggregates;
 use App\Events\TicketPurchased;
 use App\Events\TicketReservationCancelled;
 use App\Events\TicketReservationCheckedIn;
+use App\Events\TicketReservationHolderUpdated;
 use App\Exceptions\NotEnoughTicketsAvailable;
 use App\Models\Ticket;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
@@ -46,6 +47,13 @@ class TicketAggregate extends AggregateRoot
     {
         $this->recordThat(new TicketReservationCancelled($ticketReservationUuid));
 
+        return $this;
+    }
+
+    public function updateTicketReservationHolder(string $ticketReservationUuid, string $holderFirstName, string $holderLastName, string $holderEmail): self
+    {
+        $this->recordThat(new TicketReservationHolderUpdated($ticketReservationUuid, $holderFirstName, $holderLastName, $holderEmail));
+        
         return $this;
     }
 }

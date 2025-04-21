@@ -5,6 +5,7 @@ namespace App\Projectors;
 use App\Events\TicketPurchased;
 use App\Events\TicketReservationCancelled;
 use App\Events\TicketReservationCheckedIn;
+use App\Events\TicketReservationHolderUpdated;
 use App\Models\Ticket;
 use App\Models\TicketReservation;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -34,14 +35,26 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
     public function onTicketReservationCheckedIn(TicketReservationCheckedIn $event): void
     {
         TicketReservation::where('uuid', $event->ticketReservationUuid)->first()->fill([
-            'checked_in_at' => $event->createdAt()
+            'checked_in_at' => $event->createdAt(),
+            'updated_at' => $event->createdAt(),
         ])->writeable()->save();
     }
 
     public function onTicketReservationCancelled(TicketReservationCancelled $event): void
     {
         TicketReservation::where('uuid', $event->ticketReservationUuid)->first()->fill([
-            'cancelled_at' => $event->createdAt()
+            'cancelled_at' => $event->createdAt(),
+            'updated_at' => $event->createdAt(),
+        ])->writeable()->save();
+    }
+
+    public function onTicketReservationHolderUpdated(TicketReservationHolderUpdated $event): void
+    {
+        TicketReservation::where('uuid', $event->ticketReservationUuid)->first()->fill([
+            'holder_email' => $event->holderEmail,
+            'holder_first_name' => $event->holderFirstName,
+            'holder_last_name' => $event->holderLastName,
+            'updated_at' => $event->createdAt(),
         ])->writeable()->save();
     }
 
