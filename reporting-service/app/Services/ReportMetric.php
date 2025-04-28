@@ -6,6 +6,7 @@ enum ReportMetric: string
 {
     case TotalTickets = 'total_tickets';
     case TotalReservations = 'total_reservations';
+    case TotalReservationsValue = 'total_reservations_value';
 
     case TotalCheckedIn = 'total_checked_in';
     case TotalCancelled = 'total_cancelled';
@@ -17,6 +18,7 @@ enum ReportMetric: string
         return match ($this) {
             self::TotalTickets => new TotalTickets(),
             self::TotalReservations => new TotalReservations(),
+            self::TotalReservationsValue => new TotalReservationsValue(),
 
             self::TotalCheckedIn => new TotalReservationsCheckedIn(),
             self::TotalCancelled => new TotalReservationsCancelled(),
