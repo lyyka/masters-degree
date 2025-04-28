@@ -1,0 +1,320 @@
+{
+	"info": {
+		"_postman_id": "f88c02ff-fd10-40e9-8f76-18a47154323c",
+		"name": "Masters Degree",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+		"_exporter_id": "19735557"
+	},
+	"item": [
+		{
+			"name": "Ticketing Service",
+			"item": [
+				{
+					"name": "Purchase Ticket",
+					"event": [
+						{
+							"listen": "test",
+							"script": {
+								"exec": [
+									""
+								],
+								"type": "text/javascript",
+								"packages": {}
+							}
+						}
+					],
+					"request": {
+						"method": "POST",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "quantity",
+									"value": "10",
+									"type": "text"
+								},
+								{
+									"key": "first_name",
+									"value": "Test",
+									"type": "text"
+								},
+								{
+									"key": "last_name",
+									"value": "Test",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "luka.robajac@gmail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{API_TICKETING}}/api/tickets/550d88ad-4954-4934-8d1e-b1116dd7b295",
+							"host": [
+								"{{API_TICKETING}}"
+							],
+							"path": [
+								"api",
+								"tickets",
+								"550d88ad-4954-4934-8d1e-b1116dd7b295"
+							]
+						}
+					},
+					"response": [
+						{
+							"name": "Purchase Standard Ticket",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"body": {
+									"mode": "formdata",
+									"formdata": [
+										{
+											"key": "first_name",
+											"value": "Luka",
+											"type": "text"
+										},
+										{
+											"key": "last_name",
+											"value": "Robajac",
+											"type": "text"
+										},
+										{
+											"key": "email",
+											"value": "luka.robajac@gmail.com",
+											"type": "text"
+										}
+									]
+								},
+								"url": {
+									"raw": "{{API_TICKETING}}/api/tickets/550d88ad-4954-4934-8d1e-b1116dd7b295",
+									"host": [
+										"{{API_TICKETING}}"
+									],
+									"path": [
+										"api",
+										"tickets",
+										"550d88ad-4954-4934-8d1e-b1116dd7b295"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						},
+						{
+							"name": "Purchase VIP Ticket",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{API_TICKETING}}/api/tickets/ba688759-3a19-41f8-a4c9-f76519f9d6eb",
+									"host": [
+										"{{API_TICKETING}}"
+									],
+									"path": [
+										"api",
+										"tickets",
+										"ba688759-3a19-41f8-a4c9-f76519f9d6eb"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						},
+						{
+							"name": "Purchase Meet&Greet Ticket",
+							"originalRequest": {
+								"method": "POST",
+								"header": [],
+								"url": {
+									"raw": "{{API_TICKETING}}/api/tickets/a3de8df9-bbeb-496a-be2a-ca4c45a7d0c7",
+									"host": [
+										"{{API_TICKETING}}"
+									],
+									"path": [
+										"api",
+										"tickets",
+										"a3de8df9-bbeb-496a-be2a-ca4c45a7d0c7"
+									]
+								}
+							},
+							"_postman_previewlanguage": null,
+							"header": null,
+							"cookie": [],
+							"body": null
+						}
+					]
+				},
+				{
+					"name": "Check In",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{API_TICKETING}}/api/ticket-reservations/check-in/bc685f8e-be33-4358-9cb8-12ac67672066",
+							"host": [
+								"{{API_TICKETING}}"
+							],
+							"path": [
+								"api",
+								"ticket-reservations",
+								"check-in",
+								"bc685f8e-be33-4358-9cb8-12ac67672066"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Cancel",
+					"request": {
+						"method": "PATCH",
+						"header": [],
+						"url": {
+							"raw": "{{API_TICKETING}}/api/ticket-reservations/cancel/f61ae539-8fe5-4f24-a2ee-48e053a07aa7",
+							"host": [
+								"{{API_TICKETING}}"
+							],
+							"path": [
+								"api",
+								"ticket-reservations",
+								"cancel",
+								"f61ae539-8fe5-4f24-a2ee-48e053a07aa7"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "Update Holder",
+					"request": {
+						"method": "PATCH",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"body": {
+							"mode": "urlencoded",
+							"urlencoded": [
+								{
+									"key": "first_name",
+									"value": "New",
+									"type": "text"
+								},
+								{
+									"key": "last_name",
+									"value": "Name",
+									"type": "text"
+								},
+								{
+									"key": "email",
+									"value": "luka.robajac@gmail.com",
+									"type": "text"
+								}
+							]
+						},
+						"url": {
+							"raw": "{{API_TICKETING}}/api/ticket-reservations/update-holder/c6fa9d02-33fd-4b2c-8f53-3fe503ca4e0a",
+							"host": [
+								"{{API_TICKETING}}"
+							],
+							"path": [
+								"api",
+								"ticket-reservations",
+								"update-holder",
+								"c6fa9d02-33fd-4b2c-8f53-3fe503ca4e0a"
+							]
+						}
+					},
+					"response": []
+				}
+			]
+		},
+		{
+			"name": "Reporting Service",
+			"item": [
+				{
+					"name": "Metric",
+					"protocolProfileBehavior": {
+						"disabledSystemHeaders": {
+							"accept": true
+						}
+					},
+					"request": {
+						"method": "GET",
+						"header": [
+							{
+								"key": "Accept",
+								"value": "application/json",
+								"type": "text"
+							}
+						],
+						"url": {
+							"raw": "{{API_REPORTING}}/api/metric/total_reservations",
+							"host": [
+								"{{API_REPORTING}}"
+							],
+							"path": [
+								"api",
+								"metric",
+								"total_reservations"
+							]
+						}
+					},
+					"response": []
+				}
+			],
+			"description": "Available metrics:\n\n| **Metric name** | **Description** |\n| --- | --- |\n| total_tickets | Total number of sold tickets |\n| total_reservations | Total number of reservations |\n| total_reservations_value | Total value of all reservations |\n| total_checked_in | Total number of checked in reservations |\n| total_cancelled | Total number of cancelled reservations |\n| total_ticket_holders_updated | Total number of reservations on which ticket holders got updated at least once |\n| total_ticket_holders_updated_times | Total number of times ticket holder got updated on any ticket/reservation |\n\nIdeas for future metrics:\n\n| **Metric name** | **Description** |\n| --- | --- |\n| total_checked_in_per_event | Store event_id alongside reservation and calculate total number of checked in tickets per event |\n| total_cancelled_per_event | Store event_id alongside reservation and calculate total number of cancelled tickets per event |"
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"packages": {},
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "API_TICKETING",
+			"value": "",
+			"type": "string"
+		},
+		{
+			"key": "API_REPORTING",
+			"value": "",
+			"type": "string"
+		}
+	]
+}
