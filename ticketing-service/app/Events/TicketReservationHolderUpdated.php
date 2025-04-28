@@ -14,4 +14,14 @@ class TicketReservationHolderUpdated extends ShouldBeStored
     )
     {
     }
+
+    public function toArray(): array
+    {
+        return [
+            'ticket_reservation_uuid' => $this->ticketReservationUuid,
+            'holder_first_name' => $this->holderFirstName,
+            'holder_last_name' => $this->holderLastName,
+            'holder_email' => $this->holderEmail,
+        ];
+    }
 }

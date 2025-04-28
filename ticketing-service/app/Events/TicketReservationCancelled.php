@@ -11,4 +11,11 @@ class TicketReservationCancelled extends ShouldBeStored
     )
     {
     }
+
+    public function toArray(): array
+    {
+        return [
+            'ticket_reservation_uuid' => $this->ticketReservationUuid,
+        ];
+    }
 }

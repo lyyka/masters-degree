@@ -32,6 +32,7 @@ return [
      */
     'reactors' => [
         // App\Reactors\YourReactor::class
+        \App\Reactors\TicketReservationsReactor::class
     ],
 
     /*

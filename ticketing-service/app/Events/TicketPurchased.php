@@ -16,4 +16,16 @@ class TicketPurchased extends ShouldBeStored
     )
     {
     }
+
+    public function toArray(): array
+    {
+        return [
+            'ticket_uuid' => $this->ticketUuid,
+            'ticket_reservation_uuid' => $this->ticketReservationUuid,
+            'quantity' => $this->quantity,
+            'holder_first_name' => $this->holderFirstName,
+            'holder_last_name' => $this->holderLastName,
+            'holder_email' => $this->holderEmail,
+        ];
+    }
 }
