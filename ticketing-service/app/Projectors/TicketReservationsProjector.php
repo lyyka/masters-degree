@@ -27,6 +27,7 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
             'holder_last_name' => $event->holderLastName,
             'holder_email' => $event->holderEmail,
             'quantity' => $event->quantity,
+            'unit_price' => $event->unitPrice,
             'created_at' => $event->createdAt(),
             'updated_at' => $event->createdAt(),
         ])->writeable()->save();

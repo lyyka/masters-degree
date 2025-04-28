@@ -31,7 +31,7 @@ class TicketAggregate extends AggregateRoot
             throw new NotEnoughTicketsAvailable();
         }
 
-        $this->recordThat(new TicketPurchased($this->uuid(), Str::uuid(), $quantity, $holderFirstName, $holderLastName, $holderEmail));
+        $this->recordThat(new TicketPurchased($this->uuid(), Str::uuid(), $quantity, $ticket->price, $holderFirstName, $holderLastName, $holderEmail));
 
         return $this;
     }
@@ -53,7 +53,7 @@ class TicketAggregate extends AggregateRoot
     public function updateTicketReservationHolder(string $ticketReservationUuid, string $holderFirstName, string $holderLastName, string $holderEmail): self
     {
         $this->recordThat(new TicketReservationHolderUpdated($ticketReservationUuid, $holderFirstName, $holderLastName, $holderEmail));
-        
+
         return $this;
     }
 }
