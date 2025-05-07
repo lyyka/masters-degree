@@ -13,7 +13,7 @@ use Str;
 
 class TicketAggregate extends AggregateRoot
 {
-    private int $ticketsSold = 0;
+    public int $ticketsSold = 0;
 
     public function applyTicketPurchased(TicketPurchased $event): void
     {
