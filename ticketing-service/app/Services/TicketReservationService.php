@@ -3,28 +3,33 @@
 namespace App\Services;
 
 use App\Aggregates\TicketAggregate;
-use App\Exceptions\NotEnoughTicketsAvailable;
 use App\Exceptions\TicketReservationAlreadyCancelled;
 use App\Exceptions\TicketReservationAlreadyCheckedIn;
 use App\Exceptions\TicketReservationCannotBeCheckedIn;
 use App\Http\Requests\PurchaseRequest;
 use App\Http\Requests\UpdateHolderRequest;
+use App\Jobs\Tickets\PurchaseTicketJob;
 use App\Models\Ticket;
 use App\Models\TicketReservation;
 
 class TicketReservationService
 {
-    /**
-     * @throws NotEnoughTicketsAvailable
-     */
     public function purchaseTicket(PurchaseRequest $request, Ticket $ticket): void
     {
-        TicketAggregate::retrieve($ticket->uuid)->purchaseTicket(
+        PurchaseTicketJob::dispatch(
+            $ticket->uuid,
             $request->integer('quantity'),
             $request->string('first_name'),
             $request->string('last_name'),
             $request->string('email'),
-        )->persist();
+        )->onQueue('commands');
+
+        //TicketAggregate::retrieve($ticket->uuid)->purchaseTicket(
+        //    $request->integer('quantity'),
+        //    $request->string('first_name'),
+        //    $request->string('last_name'),
+        //    $request->string('email'),
+        //)->persist();
     }
 
     /**

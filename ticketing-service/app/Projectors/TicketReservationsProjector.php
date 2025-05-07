@@ -8,6 +8,7 @@ use App\Events\TicketReservationCheckedIn;
 use App\Events\TicketReservationHolderUpdated;
 use App\Models\Ticket;
 use App\Models\TicketReservation;
+use Cache;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
 
@@ -15,6 +16,7 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
 {
     public function onTicketPurchased(TicketPurchased $event): void
     {
+        $start = microtime(true);
         $ticket = Ticket::where('uuid', $event->ticketUuid)->firstOrFail();
 
         $ticketReservation = new TicketReservation();
@@ -31,6 +33,12 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
             'created_at' => $event->createdAt(),
             'updated_at' => $event->createdAt(),
         ])->writeable()->save();
+        $end = microtime(true);
+
+        $cacheData = Cache::get('onTicketPurchased', ['total' => 0, 'count' => 0]);
+        $cacheData['total'] += $end - $start;
+        $cacheData['count'] += 1;
+        Cache::put('onTicketPurchased', $cacheData);
     }
 
     public function onTicketReservationCheckedIn(TicketReservationCheckedIn $event): void
