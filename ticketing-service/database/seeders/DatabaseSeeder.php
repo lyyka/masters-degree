@@ -2,39 +2,44 @@
 
 namespace Database\Seeders;
 
-use Database\Factories\EventFactory;
-use Database\Factories\TicketFactory;
+use DB;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $davidGuettaConcert = EventFactory::new()->create([
-            'name' => 'David Guetta Concert',
-            'venue_name' => 'Stockholm Avicii Arena',
-            'venue_address' => '121 77 Johanneshov, Sweden',
-        ]);
+        $eventId = DB::table('events')->latest('id')->first()?->id + 1;
 
-        TicketFactory::new()->forEvent($davidGuettaConcert)
-            ->create([
-                'name' => 'Standard Ticket',
-                'price' => 150,
-                'available_quantity' => 1000
-            ]);
+        for ($i = 0; $i < 500; $i++) {
+            $eventInserts = [];
+            $ticketInserts = [];
 
-        TicketFactory::new()->forEvent($davidGuettaConcert)
-            ->create([
-                'name' => 'VIP Ticket',
-                'price' => 500,
-                'available_quantity' => 500
-            ]);
+            for ($j = 0; $j < 1000; $j++) {
+                $eventInserts[] = [
+                    'uuid' => fake()->uuid(),
+                    'name' => 'David Guetta Concert',
+                    'venue_name' => 'Stockholm Avicii Arena',
+                    'venue_address' => '121 77 Johanneshov, Sweden',
+                    'description' => 'The best concert in the world.',
+                    'date' => '2025-01-01'
+                ];
 
-        TicketFactory::new()->forEvent($davidGuettaConcert)
-            ->create([
-                'name' => 'Meet & Greet Ticket',
-                'price' => 1500,
-                'available_quantity' => 50
-            ]);
+                for ($z = 0; $z < 2; $z++) {
+                    $ticketInserts[] = [
+                        'event_id' => $eventId,
+                        'uuid' => fake()->uuid(),
+                        'name' => "Tier $z Ticket",
+                        'price' => 500,
+                        'available_quantity' => 999_999_999
+                    ];
+                }
+
+                $eventId++;
+            }
+
+            DB::table('events')->insert($eventInserts);
+            DB::table('tickets')->insert($ticketInserts);
+        }
     }
 }
