@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#installing-dependencies",
         "This file is @generated automatically"
     ],
-    "content-hash": "fb4409de96032edd56c2f5b2acc84753",
+    "content-hash": "2fba019c2b2bdc568516493e132d1e91",
     "packages": [
         {
             "name": "brick/math",
@@ -630,6 +630,50 @@
             "time": "2023-10-12T05:21:21+00:00"
         },
         {
+            "name": "google/protobuf",
+            "version": "v4.30.2",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/protocolbuffers/protobuf-php.git",
+                "reference": "a4c4d8565b40b9f76debc9dfeb221412eacb8ced"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/protocolbuffers/protobuf-php/zipball/a4c4d8565b40b9f76debc9dfeb221412eacb8ced",
+                "reference": "a4c4d8565b40b9f76debc9dfeb221412eacb8ced",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0.0"
+            },
+            "require-dev": {
+                "phpunit/phpunit": ">=5.0.0"
+            },
+            "suggest": {
+                "ext-bcmath": "Need to support JSON deserialization"
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Google\\Protobuf\\": "src/Google/Protobuf",
+                    "GPBMetadata\\Google\\Protobuf\\": "src/GPBMetadata/Google/Protobuf"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "BSD-3-Clause"
+            ],
+            "description": "proto library for PHP",
+            "homepage": "https://developers.google.com/protocol-buffers/",
+            "keywords": [
+                "proto"
+            ],
+            "support": {
+                "source": "https://github.com/protocolbuffers/protobuf-php/tree/v4.30.2"
+            },
+            "time": "2025-03-26T18:01:50+00:00"
+        },
+        {
             "name": "graham-campbell/result-type",
             "version": "v1.1.3",
             "source": {
@@ -690,6 +734,50 @@
                 }
             ],
             "time": "2024-07-20T21:45:45+00:00"
+        },
+        {
+            "name": "grpc/grpc",
+            "version": "1.57.0",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/grpc/grpc-php.git",
+                "reference": "b610c42022ed3a22f831439cb93802f2a4502fdf"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/grpc/grpc-php/zipball/b610c42022ed3a22f831439cb93802f2a4502fdf",
+                "reference": "b610c42022ed3a22f831439cb93802f2a4502fdf",
+                "shasum": ""
+            },
+            "require": {
+                "php": ">=7.0.0"
+            },
+            "require-dev": {
+                "google/auth": "^v1.3.0"
+            },
+            "suggest": {
+                "ext-protobuf": "For better performance, install the protobuf C extension.",
+                "google/protobuf": "To get started using grpc quickly, install the native protobuf library."
+            },
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Grpc\\": "src/lib/"
+                }
+            },
+            "notification-url": "https://packagist.org/downloads/",
+            "license": [
+                "Apache-2.0"
+            ],
+            "description": "gRPC library for PHP",
+            "homepage": "https://grpc.io",
+            "keywords": [
+                "rpc"
+            ],
+            "support": {
+                "source": "https://github.com/grpc/grpc-php/tree/v1.57.0"
+            },
+            "time": "2023-08-14T23:57:54+00:00"
         },
         {
             "name": "guzzlehttp/guzzle",
@@ -2053,6 +2141,48 @@
                 }
             ],
             "time": "2024-12-08T08:18:47+00:00"
+        },
+        {
+            "name": "lukarobajac/php-grpc",
+            "version": "dev-main",
+            "source": {
+                "type": "git",
+                "url": "https://github.com/lyyka/masters-degree-eventstore-client.git",
+                "reference": "e55f6778d5d00299e2361df2e9edb1ccf1399c40"
+            },
+            "dist": {
+                "type": "zip",
+                "url": "https://api.github.com/repos/lyyka/masters-degree-eventstore-client/zipball/e55f6778d5d00299e2361df2e9edb1ccf1399c40",
+                "reference": "e55f6778d5d00299e2361df2e9edb1ccf1399c40",
+                "shasum": ""
+            },
+            "require": {
+                "google/protobuf": "^4.30",
+                "grpc/grpc": "^1.57"
+            },
+            "default-branch": true,
+            "type": "library",
+            "autoload": {
+                "psr-4": {
+                    "Lukarobajac\\PhpGrpc\\": "src/",
+                    "Event_store\\": "src/Event_store"
+                }
+            },
+            "license": [
+                "MIT"
+            ],
+            "authors": [
+                {
+                    "name": "Luka Robajac",
+                    "email": "luka.robajac@gmail.com"
+                }
+            ],
+            "description": "PHP gRPC wrapper",
+            "support": {
+                "source": "https://github.com/lyyka/masters-degree-eventstore-client/tree/1.0",
+                "issues": "https://github.com/lyyka/masters-degree-eventstore-client/issues"
+            },
+            "time": "2025-05-09T17:04:29+00:00"
         },
         {
             "name": "monolog/monolog",
@@ -9125,8 +9255,10 @@
         }
     ],
     "aliases": [],
-    "minimum-stability": "stable",
-    "stability-flags": {},
+    "minimum-stability": "dev",
+    "stability-flags": {
+        "lukarobajac/php-grpc": 20
+    },
     "prefer-stable": true,
     "prefer-lowest": false,
     "platform": {
