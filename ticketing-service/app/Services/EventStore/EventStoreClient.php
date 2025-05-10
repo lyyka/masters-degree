@@ -2,14 +2,14 @@
 
 namespace App\Services\EventStore;
 
+use Event_store\Client\PBEmpty;
 use Event_store\Client\StreamIdentifier;
 use Event_store\Client\Streams\AppendReq;
 use Event_store\Client\Streams\AppendReq\Options;
 use Event_store\Client\Streams\AppendReq\ProposedMessage;
+use Event_store\Client\Streams\AppendResp;
 use Event_store\Client\Streams\StreamsClient;
 use Event_store\Client\UUID;
-use Google\Protobuf\Any;
-use Google\Protobuf\Timestamp;
 use Grpc\ChannelCredentials;
 
 class EventStoreClient
@@ -58,46 +58,46 @@ class EventStoreClient
      */
     public function appendToStream(string $streamName, string $eventType, array $eventData, array $metadata = []): bool
     {
-        // Create event ID
-        $eventId = $this->generateUuid();
+        $sink = $this->client->Append();
 
-        // Create timestamp
-        $timestamp = new Timestamp();
-        $now = new \DateTime();
-        $timestamp->setSeconds($now->getTimestamp());
-        $timestamp->setNanos(0);
-
-        // Create event data
-        $data = new Any();
-        $data->setValue(json_encode($eventData));
-
-        // Create metadata
-        $metadataObj = new Any();
-        $metadataObj->setValue(json_encode($metadata));
+        // Create the header
+        /*
+         * In EventStoreDB, when appending events to a stream via the gRPC API,
+         * you must specify a concurrency expectation using the ExpectedStreamRevision in the append request options.
+         * This tells EventStoreDB what state you expect the stream to be in during the write,
+         * which is crucial for ensuring event consistency and concurrency control.
+         */
+        $options = new Options();
+        $options->setStreamIdentifier(
+            (new StreamIdentifier())->setStreamName($streamName)
+        );
+        $options->setNoStream(new PBEmpty());
+        $header = new AppendReq();
+        $header->setOptions($options);
+        $sink->write($header);
 
         // Create the event
+        $eventId = $this->generateUuid();
         $event = new ProposedMessage();
         $event->setId($eventId);
-        $event->setData($data->getValue());
-        $event->setCustomMetadata($metadataObj->getValue());
-
-        // Set content type to JSON
+        $event->setData(
+            json_encode($eventData)
+        );
+        $event->setCustomMetadata(
+            json_encode($metadata)
+        );
         $event->setMetadata([
-            'type' => 'test-event',
+            'type' => $eventType,
             'content-type' => 'application/json'
         ]);
 
-        // Create the append options
-        $options = new Options();
-        $options->setStreamIdentifier(new StreamIdentifier([$streamName]));
-
         // Create the append request
         $request = new AppendReq();
-        $request->setOptions($options);
         $request->setProposedMessage($event);
+        $sink->write($request);
 
-        // Write to stream
-        list($response, $status) = $this->client->Append($request)->wait();
+        /** @var AppendResp $data */
+        [$data, $status] = $sink->wait();
 
         return $status->code === \Grpc\STATUS_OK;
     }
