@@ -14,6 +14,11 @@ return [
     |
     */
 
+    'eventstore' => [
+        'host' => env('EVENTSTORE_HOST', 'localhost'),
+        'port' => env('EVENTSTORE_PORT', 'localhost'),
+    ],
+
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
