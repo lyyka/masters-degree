@@ -8,6 +8,8 @@ use Event_store\Client\Streams\AppendReq;
 use Event_store\Client\Streams\AppendReq\Options;
 use Event_store\Client\Streams\AppendReq\ProposedMessage;
 use Event_store\Client\Streams\AppendResp;
+use Event_store\Client\Streams\ReadReq;
+use Event_store\Client\Streams\ReadResp;
 use Event_store\Client\Streams\StreamsClient;
 use Event_store\Client\UUID;
 use Grpc\ChannelCredentials;
@@ -47,6 +49,32 @@ class EventStoreClient
         return $uuid;
     }
 
+    public function readFromStream(string $streamName): void
+    {
+        $options = new ReadReq\Options();
+        $options->setResolveLinks(false);
+        $options->setUuidOption((new ReadReq\Options\UUIDOption())->setString(new PBEmpty()));
+        $options->setReadDirection(ReadReq\Options\ReadDirection::Backwards);
+        $options->setCount(1);
+        $options->setNoFilter(new PBEmpty());
+        $options->setStream(
+            (new ReadReq\Options\StreamOptions())
+                ->setStreamIdentifier((new StreamIdentifier())->setStreamName($streamName))
+                //->setRevision(2)
+                ->setEnd(new PBEmpty())
+        );
+
+        $readReq = new ReadReq();
+        $readReq->setOptions($options);
+
+        $read = $this->client->Read($readReq);
+
+        /** @var ReadResp $response */
+        foreach ($read->responses() as $response) {
+            dd($response->getEvent()->getEvent()->getData());
+        }
+    }
+
     /**
      * Write an event to a stream
      *
@@ -71,7 +99,13 @@ class EventStoreClient
         $options->setStreamIdentifier(
             (new StreamIdentifier())->setStreamName($streamName)
         );
-        $options->setNoStream(new PBEmpty());
+        /*
+         *  setNoStream when first creating the stream (use some sort of cache to determine if streams exist or not)
+         *  setRevision (latest stream revision) when stream exists
+         *
+         */
+        $options->setRevision(2);
+        //$options->setNoStream(new PBEmpty());
         $header = new AppendReq();
         $header->setOptions($options);
         $sink->write($header);

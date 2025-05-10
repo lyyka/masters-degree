@@ -23,14 +23,14 @@ class EventStoreClientTest extends Command
             'timestamp' => date('c')
         ];
 
-        $success = $client->appendToStream(
+        $client->appendToStream(
             'users',           // Stream name
             'UserRegistered',  // Event type
             $eventData,        // Event data
             []          // Metadata
         );
 
-        $this->info($success);
+        $client->readFromStream('users');
 
         $client->close();
     }
