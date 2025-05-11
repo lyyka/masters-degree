@@ -2,7 +2,9 @@
 
 namespace App\Console\Commands;
 
+use App\Services\EventStore\AppendStream;
 use App\Services\EventStore\EventStoreClient;
+use App\Services\EventStore\ReadStream;
 use Illuminate\Console\Command;
 
 class EventStoreClientTest extends Command
@@ -11,26 +13,19 @@ class EventStoreClientTest extends Command
 
     public function handle(): void
     {
-        $client = new EventStoreClient(
-            config('services.eventstore.host'),
-            config('services.eventstore.port'),
-        );
+        $client = EventStoreClient::make();
+        $appendStream = new AppendStream($client);
+        $readStream = new ReadStream($client);
 
-        // Define event data
-        $eventData = [
-            'userId' => 123,
-            'action' => 'user_registered',
-            'timestamp' => date('c')
-        ];
-
-        $client->appendToStream(
+        $appendStream->write(
             'users',           // Stream name
             'UserRegistered',  // Event type
-            $eventData,        // Event data
-            []          // Metadata
+            [
+                'userId' => 123,
+                'action' => 'user_registered',
+                'timestamp' => date('c')
+            ]
         );
-
-        $client->readFromStream('users');
 
         $client->close();
     }

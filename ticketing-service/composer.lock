@@ -2148,15 +2148,17 @@
             "source": {
                 "type": "git",
                 "url": "https://github.com/lyyka/masters-degree-eventstore-client.git",
-                "reference": "d812f85ff47bd37def50f4c5165792cced2beb48"
+                "reference": "cce78166b5a6e65929c471805e4d6973388a0592"
             },
             "dist": {
                 "type": "zip",
-                "url": "https://api.github.com/repos/lyyka/masters-degree-eventstore-client/zipball/d812f85ff47bd37def50f4c5165792cced2beb48",
-                "reference": "d812f85ff47bd37def50f4c5165792cced2beb48",
+                "url": "https://api.github.com/repos/lyyka/masters-degree-eventstore-client/zipball/cce78166b5a6e65929c471805e4d6973388a0592",
+                "reference": "cce78166b5a6e65929c471805e4d6973388a0592",
                 "shasum": ""
             },
             "require": {
+                "ext-grpc": "1.57.0",
+                "ext-protobuf": "3.22.0",
                 "google/protobuf": "^4.30",
                 "grpc/grpc": "^1.57"
             },
@@ -2183,7 +2185,7 @@
                 "source": "https://github.com/lyyka/masters-degree-eventstore-client/tree/main",
                 "issues": "https://github.com/lyyka/masters-degree-eventstore-client/issues"
             },
-            "time": "2025-05-10T14:09:29+00:00"
+            "time": "2025-05-11T09:49:03+00:00"
         },
         {
             "name": "monolog/monolog",
