@@ -14,8 +14,8 @@ class StreamCache
     public function getLatestRevision(string $streamName): int
     {
         return Cache::remember("$streamName-latest-revision", null, function () use ($streamName) {
-            $events = (new ReadStream(EventStoreClient::make()))->latest($streamName);
-            return ($events[0] ?? null) ? $events[0]['revision'] : null;
+            $event = (new ReadStream(EventStoreClient::make()))->latest($streamName)->first();
+            return $event !== null ? $event['revision'] : 0;
         });
     }
 

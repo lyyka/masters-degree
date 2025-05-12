@@ -7,6 +7,8 @@ use Event_store\Client\StreamIdentifier;
 use Event_store\Client\Streams\ReadReq;
 use Event_store\Client\Streams\ReadReq\Options\ReadDirection;
 use Event_store\Client\Streams\ReadResp;
+use Illuminate\Support\LazyCollection;
+use Log;
 
 readonly class ReadStream
 {
@@ -16,30 +18,30 @@ readonly class ReadStream
     {
     }
 
-    public function latest(string $streamName): array
+    public function latest(string $streamName, string $eventTypeMatch = null): LazyCollection
     {
         return $this->readInt(
             $streamName,
             ReadReq\Options\ReadDirection::Backwards,
             null,
-            1
+            1,
+            $eventTypeMatch
         );
     }
 
-    /**
-     * @return array[]
-     */
     public function read(
         string $streamName,
         int    $revision = null,
-        int    $limit = null
-    ): array
+        int    $limit = null,
+        string $eventTypeMatch = null,
+    ): LazyCollection
     {
         return $this->readInt(
             $streamName,
             ReadReq\Options\ReadDirection::Forwards,
             $revision,
-            $limit
+            $limit,
+            $eventTypeMatch
         );
     }
 
@@ -48,7 +50,8 @@ readonly class ReadStream
         int    $readDirection,
         int    $revision = null,
         int    $limit = null,
-    ): array
+        string $eventTypeMatch = null,
+    ): LazyCollection
     {
         $streamOptions = (new ReadReq\Options\StreamOptions())
             ->setStreamIdentifier((new StreamIdentifier())->setStreamName($streamName));
@@ -72,21 +75,36 @@ readonly class ReadStream
         }
         $options->setNoFilter(new PBEmpty());
         $options->setStream($streamOptions);
+        if ($eventTypeMatch !== null) {
+            $options->setFilter(
+                (new ReadReq\Options\FilterOptions())
+                    ->setEventType(
+                        (new ReadReq\Options\FilterOptions\Expression())
+                            ->setPrefix([$eventTypeMatch])
+                    )
+            );
+        }
 
         $readReq = new ReadReq();
         $readReq->setOptions($options);
 
         $read = $this->client->getClient()->Read($readReq);
 
-        $result = [];
-        /** @var ReadResp $response */
-        foreach ($read->responses() as $response) {
-            $event = $response->getEvent()->getEvent();
-            $result[] = [
-                'revision' => $event->getStreamRevision(),
-                'data' => $event->getData()
-            ];
-        }
-        return $result;
+        return LazyCollection::make(function () use ($read) {
+            /** @var ReadResp $response */
+            foreach ($read->responses() as $response) {
+                if ($response->hasEvent()) {
+                    $event = $response->getEvent()->getEvent();
+                    yield [
+                        'revision' => $event->getStreamRevision(),
+                        'data' => json_decode($event->getData()),
+                        'type' => (string)$event->getMetadata()->offsetGet('type'),
+                        'custom_metadata' => json_decode($event->getCustomMetadata())
+                    ];
+                } else {
+                    Log::info($response->serializeToString());
+                }
+            }
+        });
     }
 }
