@@ -1,5 +1,6 @@
 services:
   eventstore.db:
+    container_name: "ddev-${DDEV_SITENAME}-eventstore.db"
     image: eventstore/eventstore:latest
     environment:
       - EVENTSTORE_INSECURE=True
@@ -24,6 +25,9 @@ services:
         source: eventstore-volume-logs
         target: /var/log/eventstore
     restart: always
+    labels:
+      com.ddev.site-name: ${DDEV_SITENAME}
+      com.ddev.approot: ${DDEV_APPROOT}
 
 volumes:
   eventstore-volume-data:
