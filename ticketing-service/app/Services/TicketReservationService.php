@@ -16,6 +16,12 @@ class TicketReservationService
 {
     public function purchaseTicket(PurchaseRequest $request, Ticket $ticket): void
     {
+        // `bought_qty` is updated when reservation is made so it's safe
+        // to check here since it is consistent with the current state.
+        if ($ticket->available_quantity - $ticket->bought_qty < 0) {
+            return;
+        }
+
         PurchaseTicketJob::dispatch(
             $ticket->uuid,
             $request->integer('quantity'),

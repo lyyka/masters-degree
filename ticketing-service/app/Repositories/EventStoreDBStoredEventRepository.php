@@ -20,6 +20,8 @@ use Spatie\EventSourcing\StoredEvents\StoredEvent;
 
 class EventStoreDBStoredEventRepository implements StoredEventRepository
 {
+    private const string EVENT_STREAM_NAME = 'events-1';
+
     private readonly AppendStream $appendStream;
     private readonly ReadStream $readStream;
     private readonly StreamCache $streamCache;
@@ -48,10 +50,13 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         );
     }
 
+    /**
+     * @param int $id We use $id as the revision number of an event
+     */
     public function find(int $id): StoredEvent
     {
         $event = $this->readStream->read(
-            'events',
+            self::EVENT_STREAM_NAME,
             $id,
             1
         )->first();
@@ -69,7 +74,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         }
 
         $events = $this->readStream->read(
-            'events',
+            self::EVENT_STREAM_NAME,
             null,
             null,
             $uuid
@@ -90,7 +95,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         }
 
         $events = $this->readStream->read(
-            'events',
+            self::EVENT_STREAM_NAME,
             $startingFrom,
             null,
             $uuid
@@ -166,7 +171,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
             $metaData[MetaData::CREATED_AT] = $metaDataCreatedAt->toDateTimeString();
         }
 
-        $rev = $this->streamCache->getLatestRevision('events') + 1;
+        $rev = $this->streamCache->getLatestRevision(self::EVENT_STREAM_NAME) + 1;
         $eventData = [
             'event_properties' => app($serializerClass)->serialize(clone $event),
             'aggregate_uuid' => $uuid,
@@ -176,7 +181,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
             'created_at' => $createdAt,
         ];
         $this->appendStream->write(
-            'events',
+            self::EVENT_STREAM_NAME,
             $uuid,
             $eventData,
             $metaData + [
@@ -223,7 +228,6 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
 
     public function getLatestAggregateVersion(string $aggregateUuid): int
     {
-        // We use $aggregateUuid as the stream name
-        return $this->streamCache->getLatestRevision($aggregateUuid);
+        return $this->streamCache->getLatestRevision(self::EVENT_STREAM_NAME);
     }
 }

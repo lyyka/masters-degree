@@ -10,29 +10,37 @@ use App\Models\Ticket;
 use App\Models\TicketReservation;
 use Cache;
 use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\DB;
 use Spatie\EventSourcing\EventHandlers\Projectors\Projector;
+use Throwable;
 
 class TicketReservationsProjector extends Projector implements ShouldQueue
 {
+    /**
+     * @throws Throwable
+     */
     public function onTicketPurchased(TicketPurchased $event): void
     {
         $start = microtime(true);
         $ticket = Ticket::where('uuid', $event->ticketUuid)->firstOrFail();
+        DB::transaction(function () use ($event, $ticket) {
+            $ticketReservation = new TicketReservation();
+            $ticketReservation->fill([
+                'uuid' => $event->ticketReservationUuid,
+                'event_id' => $ticket->event_id,
+                'ticket_id' => $ticket->id,
+                'ticket_uuid' => $ticket->uuid,
+                'holder_first_name' => $event->holderFirstName,
+                'holder_last_name' => $event->holderLastName,
+                'holder_email' => $event->holderEmail,
+                'quantity' => $event->quantity,
+                'unit_price' => $event->unitPrice,
+                'created_at' => $event->createdAt(),
+                'updated_at' => $event->createdAt(),
+            ])->writeable()->save();
 
-        $ticketReservation = new TicketReservation();
-        $ticketReservation->fill([
-            'uuid' => $event->ticketReservationUuid,
-            'event_id' => $ticket->event_id,
-            'ticket_id' => $ticket->id,
-            'ticket_uuid' => $ticket->uuid,
-            'holder_first_name' => $event->holderFirstName,
-            'holder_last_name' => $event->holderLastName,
-            'holder_email' => $event->holderEmail,
-            'quantity' => $event->quantity,
-            'unit_price' => $event->unitPrice,
-            'created_at' => $event->createdAt(),
-            'updated_at' => $event->createdAt(),
-        ])->writeable()->save();
+            $ticket->increment('bought_qty', $event->quantity);
+        });
         $end = microtime(true);
 
         $cacheData = Cache::get('onTicketPurchased', ['total' => 0, 'count' => 0]);
