@@ -23,7 +23,7 @@ class TicketAggregate extends AggregateRoot
     /**
      * @throws NotEnoughTicketsAvailable
      */
-    public function purchaseTicket(int $quantity, string $holderFirstName, string $holderLastName, string $holderEmail): self
+    public function purchaseTicket(int $quantity, string $holderFirstName, string $holderLastName, string $holderEmail, string $reqId): self
     {
         $ticket = Ticket::where('uuid', $this->uuid())->firstOrFail();
 
@@ -31,7 +31,7 @@ class TicketAggregate extends AggregateRoot
             throw new NotEnoughTicketsAvailable();
         }
 
-        $this->recordThat(new TicketPurchased($this->uuid(), Str::uuid(), $quantity, $ticket->price, $holderFirstName, $holderLastName, $holderEmail));
+        $this->recordThat(new TicketPurchased($this->uuid(), Str::uuid(), $quantity, $ticket->price, $holderFirstName, $holderLastName, $holderEmail, $reqId));
 
         return $this;
     }

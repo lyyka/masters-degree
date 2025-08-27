@@ -14,6 +14,7 @@ class TicketPurchased extends ShouldBeStored
         public string $holderFirstName,
         public string $holderLastName,
         public string $holderEmail,
+        public string $reqId,
     )
     {
     }

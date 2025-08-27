@@ -20,6 +20,7 @@ class PurchaseTicketJob implements ShouldQueue
         private readonly string $firstName,
         private readonly string $lastName,
         private readonly string $email,
+        private readonly string $reqId,
     )
     {
     }
@@ -27,6 +28,16 @@ class PurchaseTicketJob implements ShouldQueue
     public function middleware(): array
     {
         return [new WithoutOverlapping($this->ticketUuid)];
+    }
+
+    public function tries(): int
+    {
+        return 3;
+    }
+
+    public function backoff(): array
+    {
+        return [1, 5, 10];
     }
 
     public function handle(): void
@@ -38,6 +49,7 @@ class PurchaseTicketJob implements ShouldQueue
                 $this->firstName,
                 $this->lastName,
                 $this->email,
+                $this->reqId
             )->persist();
             $end = microtime(true);
 

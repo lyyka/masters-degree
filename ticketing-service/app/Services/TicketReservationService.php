@@ -22,12 +22,16 @@ class TicketReservationService
             return;
         }
 
+        $reqId = \Str::uuid();
+        \Cache::put($reqId, microtime(true));
+
         PurchaseTicketJob::dispatch(
             $ticket->uuid,
             $request->integer('quantity'),
             $request->string('first_name'),
             $request->string('last_name'),
             $request->string('email'),
+            $reqId
         )->onQueue('commands');
 
         //TicketAggregate::retrieve($ticket->uuid)->purchaseTicket(

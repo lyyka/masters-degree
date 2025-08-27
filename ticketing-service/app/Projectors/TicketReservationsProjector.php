@@ -47,6 +47,12 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
         $cacheData['total'] += $end - $start;
         $cacheData['count'] += 1;
         Cache::put('onTicketPurchased', $cacheData);
+
+        $waitTime = $end - Cache::pull($event->reqId, $end);
+        $currentTime = Cache::get('largestWaitTime', 0);
+        if ($waitTime > $currentTime) {
+            Cache::put('largestWaitTime', $waitTime);
+        }
     }
 
     public function onTicketReservationCheckedIn(TicketReservationCheckedIn $event): void
