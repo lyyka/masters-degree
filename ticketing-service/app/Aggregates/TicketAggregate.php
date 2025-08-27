@@ -25,7 +25,10 @@ class TicketAggregate extends AggregateRoot
      */
     public function purchaseTicket(int $quantity, string $holderFirstName, string $holderLastName, string $holderEmail, string $reqId): self
     {
-        $ticket = Ticket::where('uuid', $this->uuid())->firstOrFail();
+        $ticket = \Cache::rememberForever(
+            $this->uuid(),
+            fn() => Ticket::where('uuid', $this->uuid())->toBase()->firstOrFail()
+        );
 
         if ($ticket->available_quantity - $this->ticketsSold - $quantity < 0) {
             throw new NotEnoughTicketsAvailable();

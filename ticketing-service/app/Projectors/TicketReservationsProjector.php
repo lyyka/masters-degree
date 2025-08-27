@@ -22,7 +22,10 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
     public function onTicketPurchased(TicketPurchased $event): void
     {
         $start = microtime(true);
-        $ticket = Ticket::where('uuid', $event->ticketUuid)->firstOrFail();
+        $ticket = Cache::rememberForever(
+            $event->ticketUuid,
+            fn() => Ticket::toBase()->where('uuid', $event->ticketUuid)->first()
+        );
         DB::transaction(function () use ($event, $ticket) {
             $ticketReservation = new TicketReservation();
             $ticketReservation->fill([
@@ -39,7 +42,7 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
                 'updated_at' => $event->createdAt(),
             ])->writeable()->save();
 
-            $ticket->increment('bought_qty', $event->quantity);
+            Ticket::query()->where('id', $ticket->id)->update(['bought_qty' => DB::raw('bought_qty + ' . $event->quantity)]);
         });
         $end = microtime(true);
 

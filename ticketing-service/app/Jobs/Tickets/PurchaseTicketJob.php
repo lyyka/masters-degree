@@ -4,11 +4,9 @@ namespace App\Jobs\Tickets;
 
 use App\Aggregates\TicketAggregate;
 use App\Exceptions\NotEnoughTicketsAvailable;
-use Cache;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Queue\Middleware\WithoutOverlapping;
-use Log;
 
 class PurchaseTicketJob implements ShouldQueue
 {
@@ -40,27 +38,18 @@ class PurchaseTicketJob implements ShouldQueue
         return [1, 5, 10];
     }
 
+    /**
+     * @throws NotEnoughTicketsAvailable
+     */
     public function handle(): void
     {
-        try {
-            $start = microtime(true);
-            TicketAggregate::retrieve($this->ticketUuid)->purchaseTicket(
-                $this->quantity,
-                $this->firstName,
-                $this->lastName,
-                $this->email,
-                $this->reqId
-            )->persist();
-            $end = microtime(true);
-
-            $cacheData = Cache::get('PurchaseTicketJob', ['total' => 0, 'count' => 0]);
-            $cacheData['total'] += $end - $start;
-            $cacheData['count'] += 1;
-            Cache::put('PurchaseTicketJob', $cacheData);
-
-            Log::info('Websocket communication about success here');
-        } catch (NotEnoughTicketsAvailable) {
-            Log::info('Websocket communication about error here');
-        }
+        $agg = TicketAggregate::retrieve($this->ticketUuid);
+        $agg->purchaseTicket(
+            $this->quantity,
+            $this->firstName,
+            $this->lastName,
+            $this->email,
+            $this->reqId
+        )->persist();
     }
 }
