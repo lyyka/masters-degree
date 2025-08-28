@@ -44,6 +44,9 @@ class PurchaseTicketJob implements ShouldQueue
     public function handle(): void
     {
         $agg = TicketAggregate::retrieve($this->ticketUuid);
+        if (count($agg->getAppliedEvents()) > 20) {
+            $agg->snapshot();
+        }
         $agg->purchaseTicket(
             $this->quantity,
             $this->firstName,

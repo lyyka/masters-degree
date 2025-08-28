@@ -21,7 +21,6 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
      */
     public function onTicketPurchased(TicketPurchased $event): void
     {
-        $start = microtime(true);
         $ticket = Cache::rememberForever(
             $event->ticketUuid,
             fn() => Ticket::toBase()->where('uuid', $event->ticketUuid)->first()
@@ -44,17 +43,16 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
 
             Ticket::query()->where('id', $ticket->id)->update(['bought_qty' => DB::raw('bought_qty + ' . $event->quantity)]);
         });
+
         $end = microtime(true);
-
-        $cacheData = Cache::get('onTicketPurchased', ['total' => 0, 'count' => 0]);
-        $cacheData['total'] += $end - $start;
-        $cacheData['count'] += 1;
-        Cache::put('onTicketPurchased', $cacheData);
-
         $waitTime = $end - Cache::pull($event->reqId, $end);
-        $currentTime = Cache::get('largestWaitTime', 0);
-        if ($waitTime > $currentTime) {
+        $currentMaxTime = Cache::get('largestWaitTime', 0);
+        $currentMinTime = Cache::get('smallestWaitTime');
+        if ($waitTime > $currentMaxTime) {
             Cache::put('largestWaitTime', $waitTime);
+        }
+        if ($currentMinTime === null || $waitTime < $currentMinTime) {
+            Cache::put('smallestWaitTime', $waitTime);
         }
     }
 
