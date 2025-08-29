@@ -8,6 +8,7 @@ use App\Events\TicketReservationCheckedIn;
 use App\Events\TicketReservationHolderUpdated;
 use App\Exceptions\NotEnoughTicketsAvailable;
 use App\Models\Ticket;
+use Cache;
 use Spatie\EventSourcing\AggregateRoots\AggregateRoot;
 use Str;
 
@@ -25,8 +26,8 @@ class TicketAggregate extends AggregateRoot
      */
     public function purchaseTicket(int $quantity, string $holderFirstName, string $holderLastName, string $holderEmail, string $reqId): self
     {
-        $ticket = \Cache::rememberForever(
-            $this->uuid(),
+        $ticket = Cache::rememberForever(
+            "dbq-" . $this->uuid(),
             fn() => Ticket::where('uuid', $this->uuid())->toBase()->firstOrFail()
         );
 

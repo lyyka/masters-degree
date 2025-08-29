@@ -86,7 +86,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         }
 
         $events = $this->readStream->read(
-            self::EVENT_STREAM_NAME,
+            $uuid,
             null,
             1000,
             $uuid
@@ -107,7 +107,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         }
 
         $events = $this->readStream->read(
-            self::EVENT_STREAM_NAME,
+            $uuid,
             $startingFrom,
             1000,
             $uuid
@@ -183,7 +183,8 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
             $metaData[MetaData::CREATED_AT] = $metaDataCreatedAt->toDateTimeString();
         }
 
-        $rev = $this->streamCache->getLatestRevision(self::EVENT_STREAM_NAME) + 1;
+        $lr = $this->streamCache->getLatestRevision($uuid);
+        $rev = $lr === null ? 0 : ($lr + 1);
         $eventData = [
             'event_properties' => app($serializerClass)->serialize(clone $event),
             'aggregate_uuid' => $uuid,
@@ -193,7 +194,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
             'created_at' => $createdAt,
         ];
         $this->appendStream->write(
-            self::EVENT_STREAM_NAME,
+            $uuid,
             $uuid,
             $eventData,
             $metaData + [
@@ -240,6 +241,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
 
     public function getLatestAggregateVersion(string $aggregateUuid): int
     {
-        return $this->streamCache->getLatestRevision(self::EVENT_STREAM_NAME) + 1;
+        $lr = $this->streamCache->getLatestRevision($aggregateUuid);
+        return $lr === null ? 0 : ($lr + 1);
     }
 }

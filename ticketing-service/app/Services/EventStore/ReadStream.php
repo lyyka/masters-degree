@@ -13,10 +13,13 @@ use Log;
 
 readonly class ReadStream
 {
+    private StreamCache $streamCache;
+
     public function __construct(
         private EventStoreClient $client
     )
     {
+        $this->streamCache = new StreamCache();
     }
 
     public function latest(string $streamName, string $eventTypeMatch = null): LazyCollection
@@ -26,7 +29,7 @@ readonly class ReadStream
             ReadReq\Options\ReadDirection::Backwards,
             null,
             1,
-            $eventTypeMatch
+        //$eventTypeMatch
         );
     }
 
@@ -54,6 +57,10 @@ readonly class ReadStream
         string $eventTypeMatch = null,
     ): LazyCollection
     {
+        if (!$this->streamCache->checkStreamExistence($streamName)) {
+            return LazyCollection::make();
+        }
+
         $options = new ReadReq\Options();
         $options->setResolveLinks(false);
         $options->setUuidOption((new ReadReq\Options\UUIDOption())->setString(new PBEmpty()));
@@ -121,7 +128,7 @@ readonly class ReadStream
                         continue;
                     }
                     yield [
-                        'revision' => $event->getStreamRevision(),
+                        'revision' => $event->getStreamRevision(), // this is 0-indexed !!!
                         'data' => json_decode($event->getData()),
                         'type' => (string)$event->getMetadata()->offsetGet('type'),
                         'custom_metadata' => json_decode($event->getCustomMetadata())

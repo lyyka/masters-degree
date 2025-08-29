@@ -42,13 +42,13 @@ readonly class AppendStream
         $options->setStreamIdentifier(
             (new StreamIdentifier())->setStreamName($streamName)
         );
-
         if ($this->streamCache->checkStreamExistence($streamName)) {
-            $rev = $this->streamCache->getLatestRevision($streamName);
-            $options->setRevision($rev);
+            $rev = $this->streamCache->getLatestRevision($streamName) ?? 0;
+            $options->setRevision($rev); // this is 0-indexed !!!
             $this->streamCache->setLatestRevision($streamName, $rev + 1);
         } else {
-            $options->setNoStream(new PBEmpty());
+            //$options->setNoStream(new PBEmpty());
+            $options->setAny(new PBEmpty());
         }
 
         $header = new AppendReq();
@@ -78,8 +78,14 @@ readonly class AppendStream
         /** @var AppendResp $data */
         [$data, $status] = $sink->wait();
 
+        //dd($status);
+        //dd($data->getResult());
         $result = $data->getResult();
 
-        return $status->code === STATUS_OK && $result === "success";
+        $success = $status->code === STATUS_OK && $result === "success";
+
+        $this->streamCache->markAsExists($streamName);
+
+        return $success;
     }
 }

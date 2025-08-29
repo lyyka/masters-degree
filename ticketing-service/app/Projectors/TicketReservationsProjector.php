@@ -22,7 +22,7 @@ class TicketReservationsProjector extends Projector implements ShouldQueue
     public function onTicketPurchased(TicketPurchased $event): void
     {
         $ticket = Cache::rememberForever(
-            $event->ticketUuid,
+            "dbq-$event->ticketUuid",
             fn() => Ticket::toBase()->where('uuid', $event->ticketUuid)->first()
         );
         DB::transaction(function () use ($event, $ticket) {
