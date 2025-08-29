@@ -17,15 +17,21 @@ class EventStoreClientTest extends Command
         $appendStream = new AppendStream($client);
         $readStream = new ReadStream($client);
 
-        $appendStream->write(
-            'users',           // Stream name
-            'UserRegistered',  // Event type
-            [
-                'userId' => 123,
-                'action' => 'user_registered',
-                'timestamp' => date('c')
-            ]
+        dd(
+            $readStream->latest(
+                'events-1'
+            )->all()
         );
+
+        //$appendStream->write(
+        //    'users',           // Stream name
+        //    'UserRegistered',  // Event type
+        //    [
+        //        'userId' => 123,
+        //        'action' => 'user_registered',
+        //        'timestamp' => date('c')
+        //    ]
+        //);
 
         $client->close();
     }

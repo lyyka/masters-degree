@@ -34,9 +34,10 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         $this->streamCache = new StreamCache();
     }
 
-    private function eventToStoredEvent(array $event): StoredEvent
+    private function eventToStoredEvent(mixed $event): StoredEvent
     {
-        return new StoredEvent(
+        $event = json_decode(json_encode($event), true);
+        return is_array($event) ? new StoredEvent(
             [
                 'id' => $event['revision'],
                 'event_properties' => $event['data']['event_properties'],
@@ -44,8 +45,19 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
                 'aggregate_version' => $event['data']['aggregate_version'] ?? 0,
                 'event_version' => $event['data']['event_version'],
                 'event_class' => $event['data']['event_class'],
-                'meta_data' => $event['custom_metadata'],
+                'meta_data' => collect($event['custom_metadata']),
                 'created_at' => $event['data']['created_at'],
+            ],
+        ) : new StoredEvent(
+            [
+                'id' => $event->revision,
+                'event_properties' => $event->data->event_properties,
+                'aggregate_uuid' => $event->data->aggregate_uuid,
+                'aggregate_version' => $event->data->aggregate_version ?? 0,
+                'event_version' => $event->data->event_version,
+                'event_class' => $event->data->event_class,
+                'meta_data' => $event->custom_metadata,
+                'created_at' => $event->data->created_at,
             ],
         );
     }
@@ -76,7 +88,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         $events = $this->readStream->read(
             self::EVENT_STREAM_NAME,
             null,
-            null,
+            1000,
             $uuid
         );
 
@@ -97,7 +109,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         $events = $this->readStream->read(
             self::EVENT_STREAM_NAME,
             $startingFrom,
-            null,
+            1000,
             $uuid
         );
 
@@ -228,6 +240,6 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
 
     public function getLatestAggregateVersion(string $aggregateUuid): int
     {
-        return $this->streamCache->getLatestRevision(self::EVENT_STREAM_NAME);
+        return $this->streamCache->getLatestRevision(self::EVENT_STREAM_NAME) + 1;
     }
 }
