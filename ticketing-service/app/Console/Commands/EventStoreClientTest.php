@@ -17,15 +17,17 @@ class EventStoreClientTest extends Command
         $appendStream = new AppendStream($client);
         $readStream = new ReadStream($client);
 
-        $appendStream->write(
-            'efbab1ea-9de1-3719-b61f-063850927bf1',
-            'efbab1ea-9de1-3719-b61f-063850927bf1',
-            ['TEST' => 'please workkkkkk'],
-        );
+        //$appendStream->write(
+        //    'efbab1ea-9de1-3719-b61f-063850927bf1',
+        //    'efbab1ea-9de1-3719-b61f-063850927bf1',
+        //    ['TEST' => 'please workkkkkk'],
+        //);
 
         dd(
-            $readStream->latest(
-                'efbab1ea-9de1-3719-b61f-063850927bf1'
+            $readStream->read(
+                '764b48d8-b65a-3b0f-99db-d49e34e45d74',
+                21 - 1,
+                1000
             )->first()
         );
 

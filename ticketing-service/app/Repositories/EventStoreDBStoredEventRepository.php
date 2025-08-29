@@ -89,7 +89,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
             $uuid,
             null,
             1000,
-            $uuid
+        //$uuid
         );
 
         return $events->map(function ($event) {
@@ -110,7 +110,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
             $uuid,
             $startingFrom,
             1000,
-            $uuid
+        //$uuid
         );
 
         return $events->map(function ($event) {
@@ -127,10 +127,14 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         //  so we cannot use $aggregateVersion as a revision, since we should look for
         //  $aggregateVersion inside all events under $aggregateUuid.
 
-        $events = $this->retrieveAll($aggregateUuid);
+        $events = $this->readStream->read(
+            $aggregateUuid,
+            $aggregateVersion,
+            1000
+        );
 
-        return $events->filter(function (array $event) use ($aggregateVersion) {
-            return $event['aggregate_version'] > $aggregateVersion;
+        return $events->map(function ($event) {
+            return $this->eventToStoredEvent($event);
         });
     }
 
