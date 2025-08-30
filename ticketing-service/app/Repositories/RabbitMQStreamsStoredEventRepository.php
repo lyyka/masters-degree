@@ -2,12 +2,10 @@
 
 namespace App\Repositories;
 
+use App\Services\RabbitMQ\RabbitMQService;
 use Carbon\Carbon;
 use Exception;
 use Illuminate\Support\LazyCollection;
-use PhpAmqpLib\Connection\AMQPStreamConnection;
-use PhpAmqpLib\Message\AMQPMessage;
-use PhpAmqpLib\Wire\AMQPTable;
 use ReflectionClass;
 use Spatie\EventSourcing\Attributes\EventSerializer as EventSerializerAttribute;
 use Spatie\EventSourcing\Enums\MetaData;
@@ -19,120 +17,11 @@ use Spatie\EventSourcing\StoredEvents\StoredEvent;
 
 class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
 {
-    private const string EVENT_STREAM_NAME = 'events_stream';
-
-    private ?AMQPStreamConnection $connection = null;
+    private readonly RabbitMQService $rabbitMQService;
 
     public function __construct()
     {
-        $this->connect();
-    }
-
-    private function connect(): void
-    {
-        $this->connection = new AMQPStreamConnection(
-            config('queue.connections.rabbitmq.hosts.0.host'),
-            config('queue.connections.rabbitmq.hosts.0.port'),
-            config('queue.connections.rabbitmq.hosts.0.user'),
-            config('queue.connections.rabbitmq.hosts.0.password'),
-            config('queue.connections.rabbitmq.hosts.0.vhost'),
-        );
-    }
-
-    private function ensureConnection(): void
-    {
-        if ($this->connection === null || !$this->connection->isConnected()) {
-            $this->connect();
-        }
-    }
-
-    private function getStreamName(string $aggregateUuid): string
-    {
-        return self::EVENT_STREAM_NAME . '_' . $aggregateUuid;
-    }
-
-    private function declareStream(string $streamName): void
-    {
-        $channel = $this->connection->channel();
-
-        // Declare stream as a durable queue with stream arguments
-        $channel->queue_declare(
-            $streamName,
-            false,     // passive
-            true,      // durable
-            false,     // exclusive
-            false,     // auto_delete
-            false,     // nowait
-            [
-                'x-queue-type' => ['S', 'stream'],
-                //'x-max-length-bytes' => ['I', 1000000000], // 1GB max
-            ]
-        );
-
-        $channel->close();
-    }
-
-    public function publishToStream(string $streamName, array $eventData, array $metaData): void
-    {
-        $streamName = $this->getStreamName($streamName);
-
-        $this->ensureConnection();
-        $channel = $this->connection->channel();
-
-        // Ensure stream exists
-        $this->declareStream($streamName);
-
-        $messageBody = json_encode([
-            'data' => $eventData,
-            'meta_data' => $metaData,
-        ]);
-
-        $message = new AMQPMessage($messageBody, [
-            'delivery_mode' => 2, // Make message persistent
-            'timestamp' => time(),
-        ]);
-
-        $channel->basic_publish($message, '', $streamName);
-        $channel->close();
-    }
-
-    public function readFromStream(string $streamName, ?int $offset = null): LazyCollection
-    {
-        $streamName = $this->getStreamName($streamName);
-
-        $this->ensureConnection();
-        $channel = $this->connection->channel();
-
-        try {
-            $this->declareStream($streamName);
-        } catch (Exception) {
-            return new LazyCollection([]);
-        }
-
-        $messages = [];
-
-        // Simple consumer to read messages
-        $callback = function (AMQPMessage $message) use (&$messages) {
-            $messageData = json_decode($message->getBody(), true);
-            $messages[] = $messageData;
-            $message->ack();
-        };
-
-        $channel->basic_qos(0, 100, false);
-        $opts = $offset !== null ? ['x-stream-offset' => $offset] : ['x-stream-offset' => 'first'];
-        $channel->basic_consume($streamName, '', false, false, false, false, $callback, null, new AMQPTable($opts));
-
-        while ($channel->is_consuming()) {
-            try {
-                $channel->wait(null, false, 0.1);
-            } catch (Exception) {
-                break;
-            }
-        }
-
-        $channel->close();
-
-        return new LazyCollection($messages);
+        $this->rabbitMQService = new RabbitMQService();
     }
 
     public function find(int $id): StoredEvent
@@ -146,7 +35,7 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
             throw new Exception('Cannot retrieveAll without Aggregate UUID in RabbitMQ Streams');
         }
 
-        $events = $this->readFromStream($uuid);
+        $events = $this->rabbitMQService->readFromStream($uuid);
 
         return $events->map(function ($eventData) {
             return $this->arrayToStoredEvent($eventData);
@@ -159,7 +48,7 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
             throw new Exception('Cannot retrieveAllStartingFrom without Aggregate UUID in RabbitMQ Streams');
         }
 
-        $events = $this->readFromStream($uuid, $startingFrom);
+        $events = $this->rabbitMQService->readFromStream($uuid, $startingFrom);
 
         return $events->map(function ($eventData) {
             return $this->arrayToStoredEvent($eventData);
@@ -168,7 +57,7 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
 
     public function retrieveAllAfterVersion(int $aggregateVersion, string $aggregateUuid): LazyCollection
     {
-        $events = $this->readFromStream($aggregateUuid, $aggregateVersion);
+        $events = $this->rabbitMQService->readFromStream($aggregateUuid, $aggregateVersion);
 
         return $events->map(function ($eventData) {
             return $this->arrayToStoredEvent($eventData);
@@ -202,7 +91,6 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
             throw new Exception('Cannot store event without Aggregate UUID in RabbitMQ Streams');
         }
 
-        $this->ensureConnection();
         $createdAt = Carbon::now();
         $reflectionClass = new ReflectionClass(get_class($event));
 
@@ -229,10 +117,9 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
                 MetaData::CREATED_AT => $createdAt->toDateTimeString(),
             ];
 
-        $eventId = $this->publishToStream($uuid, $eventData, $fullMetaData);
+        $this->rabbitMQService->publishToStream($uuid, $eventData, $fullMetaData);
 
         return new StoredEvent([
-            'id' => $eventId,
             'event_properties' => $eventData['event_properties'],
             'aggregate_uuid' => $eventData['aggregate_uuid'],
             'aggregate_version' => $eventData['aggregate_version'],
@@ -263,10 +150,7 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
     public function getLatestAggregateVersion(string $aggregateUuid): int
     {
         try {
-            $events = $this->readFromStream($aggregateUuid);
-            $latestEvent = $events->last();
-
-            return $latestEvent ? $latestEvent['data']['aggregate_version'] + 1 : 0;
+            return $this->rabbitMQService->getStreamMeta($aggregateUuid);
         } catch (Exception) {
             return 0;
         }
@@ -275,7 +159,6 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
     private function arrayToStoredEvent(array $eventData): StoredEvent
     {
         return new StoredEvent([
-            'id' => $eventData['id'],
             'event_properties' => $eventData['data']['event_properties'],
             'aggregate_uuid' => $eventData['data']['aggregate_uuid'],
             'aggregate_version' => $eventData['data']['aggregate_version'] ?? 0,
@@ -284,12 +167,5 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
             'meta_data' => collect($eventData['meta_data']),
             'created_at' => $eventData['data']['created_at'],
         ]);
-    }
-
-    public function __destruct()
-    {
-        if ($this->connection && $this->connection->isConnected()) {
-            $this->connection->close();
-        }
     }
 }

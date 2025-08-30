@@ -20,8 +20,6 @@ use Spatie\EventSourcing\StoredEvents\StoredEvent;
 
 class EventStoreDBStoredEventRepository implements StoredEventRepository
 {
-    private const string EVENT_STREAM_NAME = 'events-1';
-
     private readonly AppendStream $appendStream;
     private readonly ReadStream $readStream;
     private readonly StreamCache $streamCache;
@@ -62,18 +60,9 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         );
     }
 
-    /**
-     * @param int $id We use $id as the revision number of an event
-     */
     public function find(int $id): StoredEvent
     {
-        $event = $this->readStream->read(
-            self::EVENT_STREAM_NAME,
-            $id,
-            1
-        )->first();
-
-        return $this->eventToStoredEvent($event);
+        throw new Exception("Event with ID {$id} not found");
     }
 
     /**
