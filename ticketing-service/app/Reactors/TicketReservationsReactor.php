@@ -6,7 +6,6 @@ use App\Events\TicketPurchased;
 use App\Events\TicketReservationCancelled;
 use App\Events\TicketReservationCheckedIn;
 use App\Events\TicketReservationHolderUpdated;
-use App\Jobs\Messages\TicketPurchasedMessage;
 use App\Jobs\Messages\TicketReservationCancelledMessage;
 use App\Jobs\Messages\TicketReservationCheckedInMessage;
 use App\Jobs\Messages\TicketReservationHolderUpdatedMessage;
@@ -20,7 +19,7 @@ class TicketReservationsReactor extends Reactor implements ShouldQueue
 {
     public function onTicketPurchased(TicketPurchased $event): void
     {
-        TicketPurchasedMessage::dispatch($event->toArray())->onQueue('ticket-events-outgoing');
+        //TicketPurchasedMessage::dispatch($event->toArray())->onQueue('ticket-events-outgoing');
     }
 
     public function onTicketReservationCheckedIn(TicketReservationCheckedIn $event): void

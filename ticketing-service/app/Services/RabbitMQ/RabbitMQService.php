@@ -2,6 +2,7 @@
 
 namespace App\Services\RabbitMQ;
 
+use Cache;
 use Exception;
 use Illuminate\Support\LazyCollection;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
@@ -65,17 +66,20 @@ class RabbitMQService
 
     public function getStreamMeta(string $streamName): int
     {
-        $channel = $this->connection->channel();
+        $streamName = $this->getStreamName($streamName);
 
-        // Declare stream as a durable queue with stream arguments
-        list($queueName, $messageCount, $consumerCount) = $channel->queue_declare(
-            $this->getStreamName($streamName),
-            true
-        );
+        return Cache::rememberForever("$streamName.meta", function () use ($streamName) {
+            $channel = $this->connection->channel();
 
-        $channel->close();
+            list($queueName, $messageCount, $consumerCount) = $channel->queue_declare(
+                $streamName,
+                true
+            );
 
-        return $messageCount;
+            $channel->close();
+
+            return $messageCount;
+        });
     }
 
     public function publishToStream(string $streamName, array $eventData, array $metaData): void
@@ -99,6 +103,9 @@ class RabbitMQService
         ]);
 
         $channel->basic_publish($message, '', $streamName);
+
+        Cache::put("$streamName.meta", Cache::get("$streamName.meta", 0) + 1);
+
         $channel->close();
     }
 
