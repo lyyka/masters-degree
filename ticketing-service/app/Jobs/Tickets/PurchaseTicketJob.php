@@ -30,7 +30,7 @@ class PurchaseTicketJob implements ShouldQueue
 
     public function tries(): int
     {
-        return 3;
+        return 1;
     }
 
     public function backoff(): array
