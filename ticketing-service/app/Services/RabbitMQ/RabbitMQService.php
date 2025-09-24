@@ -137,7 +137,7 @@ class RabbitMQService
 
         while ($channel->is_consuming()) {
             try {
-                $channel->wait(null, false, 0.1);
+                $channel->wait(null, false, 0.001);
             } catch (Exception) {
                 break;
             }
