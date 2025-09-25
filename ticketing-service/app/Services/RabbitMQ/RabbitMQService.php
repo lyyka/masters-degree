@@ -2,9 +2,10 @@
 
 namespace App\Services\RabbitMQ;
 
-use Cache;
 use Exception;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\LazyCollection;
+use PhpAmqpLib\Channel\AMQPChannel;
 use PhpAmqpLib\Connection\AMQPStreamConnection;
 use PhpAmqpLib\Message\AMQPMessage;
 use PhpAmqpLib\Wire\AMQPTable;
@@ -14,6 +15,7 @@ class RabbitMQService
     private const string EVENT_STREAM_NAME = 'events_stream';
 
     private ?AMQPStreamConnection $connection = null;
+    private ?AMQPChannel $channel = null;
 
     public function __construct()
     {
@@ -43,9 +45,25 @@ class RabbitMQService
         return self::EVENT_STREAM_NAME . '_' . $aggregateUuid;
     }
 
+    private function getChannel(): AMQPChannel
+    {
+        // Reuse existing channel if available and open
+        if ($this->channel && $this->channel->is_open()) {
+            return $this->channel;
+        }
+
+        // Create new channel
+        $this->channel = $this->connection->channel();
+
+        // Enable publisher confirms for reliability
+        $this->channel->confirm_select();
+
+        return $this->channel;
+    }
+
     private function declareStream(string $streamName): void
     {
-        $channel = $this->connection->channel();
+        $channel = $this->getChannel();
 
         // Declare stream as a durable queue with stream arguments
         $channel->queue_declare(
@@ -61,7 +79,7 @@ class RabbitMQService
             ]
         );
 
-        $channel->close();
+        //$channel->close();
     }
 
     public function getStreamMeta(string $streamName): int
@@ -69,14 +87,14 @@ class RabbitMQService
         $streamName = $this->getStreamName($streamName);
 
         return Cache::rememberForever("$streamName.meta", function () use ($streamName) {
-            $channel = $this->connection->channel();
+            $channel = $this->getChannel();
 
             list($queueName, $messageCount, $consumerCount) = $channel->queue_declare(
                 $streamName,
                 true
             );
 
-            $channel->close();
+            //$channel->close();
 
             return $messageCount;
         });
@@ -87,7 +105,16 @@ class RabbitMQService
         $streamName = $this->getStreamName($streamName);
 
         $this->ensureConnection();
-        $channel = $this->connection->channel();
+        $channel = $this->getChannel();
+
+        //$channel->confirm_select();
+
+        // Set up callbacks
+        //$channel->set_ack_handler(
+        //    function (AMQPMessage $message) use ($streamName) {
+        //        Cache::increment("$streamName.meta");
+        //    }
+        //);
 
         // Ensure stream exists
         $this->declareStream($streamName);
@@ -104,9 +131,10 @@ class RabbitMQService
 
         $channel->basic_publish($message, '', $streamName);
 
-        Cache::put("$streamName.meta", Cache::get("$streamName.meta", 0) + 1);
+        //$channel->wait_for_pending_acks(5.0);
+        Cache::increment("$streamName.meta");
 
-        $channel->close();
+        //$channel->close();
     }
 
     public function readFromStream(string $streamName, ?int $offset = null): LazyCollection
@@ -114,7 +142,7 @@ class RabbitMQService
         $streamName = $this->getStreamName($streamName);
 
         $this->ensureConnection();
-        $channel = $this->connection->channel();
+        $channel = $this->getChannel();
 
         try {
             $this->declareStream($streamName);
@@ -123,12 +151,12 @@ class RabbitMQService
         }
 
         $messages = [];
+        $latestDeliveryTag = 0;
 
-        // Simple consumer to read messages
-        $callback = function (AMQPMessage $message) use (&$messages) {
+        $callback = function (AMQPMessage $message) use (&$messages, &$latestDeliveryTag) {
             $messageData = json_decode($message->getBody(), true);
             $messages[] = $messageData;
-            $message->ack();
+            $latestDeliveryTag = $message->getDeliveryTag();
         };
 
         $channel->basic_qos(0, 100, false);
@@ -137,21 +165,14 @@ class RabbitMQService
 
         while ($channel->is_consuming()) {
             try {
-                $channel->wait(null, false, 0.001);
+                $channel->wait(null, false, 0.01);
             } catch (Exception) {
                 break;
             }
         }
 
-        $channel->close();
+        $channel->basic_ack($latestDeliveryTag, true);
 
         return new LazyCollection($messages);
-    }
-
-    public function __destruct()
-    {
-        if ($this->connection && $this->connection->isConnected()) {
-            $this->connection->close();
-        }
     }
 }
