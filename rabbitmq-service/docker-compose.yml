@@ -10,7 +10,33 @@ services:
       RABBITMQ_DEFAULT_PASS: guest
     volumes:
       - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - rabbitmq_network
     restart: unless-stopped
+  
+  amqproxy:
+    image: cloudamqp/amqproxy:latest
+    container_name: amqproxy
+    ports:
+      - "5673:5673"       # Proxy AMQP port (your app connects here)
+      - "8080:8080"   # Metrics port
+    environment:
+      # Connection string to actual RabbitMQ
+      AMQP_URL: "amqp://guest:guest@rabbitmq:5672"
+      # Proxy listens on port 5673
+      LISTEN_PORT: 5673
+      # Number of persistent connections to maintain with RabbitMQ
+      CONNECTION_POOL_SIZE: 10
+      # Max channels per connection
+      MAX_CHANNELS_PER_CONNECTION: 100
+      METRICS_PORT: 8080
+    networks:
+      - rabbitmq_network
+    restart: unless-stopped
+
+networks:
+  rabbitmq_network:
+    driver: bridge
 
 volumes:
   rabbitmq_data:
