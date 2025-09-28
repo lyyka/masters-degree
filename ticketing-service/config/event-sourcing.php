@@ -53,16 +53,16 @@ return [
      * To add extra behaviour you can change this to a class of your own. It should
      * extend the \Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent model.
      */
-    //'stored_event_model' => Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent::class,
-    'stored_event_model' => \App\Models\StoredEvent::class, // for vitess
+    'stored_event_model' => Spatie\EventSourcing\StoredEvents\Models\EloquentStoredEvent::class, // regular
+    //'stored_event_model' => \App\Models\StoredEvent::class, // for vitess
 
     /*
      * This class is responsible for storing events. To add extra behaviour you
      * can change this to a class of your own. The only restriction is that
      * it should implement \Spatie\EventSourcing\StoredEvents\Repositories\EloquentStoredEventRepository.
      */
-    'stored_event_repository' => Spatie\EventSourcing\StoredEvents\Repositories\EloquentStoredEventRepository::class,
-    //'stored_event_repository' => \App\Repositories\EventStoreDBStoredEventRepository::class,
+    //'stored_event_repository' => Spatie\EventSourcing\StoredEvents\Repositories\EloquentStoredEventRepository::class,
+    'stored_event_repository' => \App\Repositories\EventStoreDBStoredEventRepository::class,
     //'stored_event_repository' => \App\Repositories\RabbitMQStreamsStoredEventRepository::class,
 
     /*
@@ -77,8 +77,8 @@ return [
      * To add extra behaviour you can change this to a class of your own. It should
      * extend the \Spatie\EventSourcing\Snapshots\EloquentSnapshot model.
      */
-    //'snapshot_model' => Spatie\EventSourcing\Snapshots\EloquentSnapshot::class,
-    'snapshot_model' => \App\Models\Snapshot::class, // for vitess
+    'snapshot_model' => Spatie\EventSourcing\Snapshots\EloquentSnapshot::class, // regular
+    //'snapshot_model' => \App\Models\Snapshot::class, // for vitess
 
     /*
      * This class is responsible for handling stored events. To add extra behaviour you
