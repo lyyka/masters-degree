@@ -1,0 +1,40 @@
+{
+    "sharded": true,
+    "stored_events_seq": {
+        "type": "sequence"
+    },
+    "snapshots_seq": {
+        "type": "sequence"
+    },
+    "vindexes": {
+        "unicode_loose_md5": {
+            "type": "unicode_loose_md5"
+        }
+    },
+    "tables": {
+        "stored_events": {
+            "column_vindexes": [
+                {
+                    "column": "aggregate_uuid",
+                    "name": "unicode_loose_md5"
+                }
+            ],
+            "auto_increment": {
+                "column": "id",
+                "sequence": "unsh.stored_events_seq"
+            }
+        },
+        "snapshots": {
+            "column_vindexes": [
+                {
+                    "column": "aggregate_uuid",
+                    "name": "unicode_loose_md5"
+                }
+            ],
+            "auto_increment": {
+                "column": "id",
+                "sequence": "unsh.snapshots_seq"
+            }
+        }
+    }
+}

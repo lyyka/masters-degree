@@ -3,12 +3,12 @@ services:
     image: vitess/vttestserver:mysql80
     container_name: "ddev-${DDEV_SITENAME}-vitess"
     ports:
-      - "33577:33577" # vtgate
-      - "33574:33574" # vtcombo /debug/status page
-      - "33575:33575" # vtctld listens for grpc requests
+      - "33577:33577"
+      - "33574:33574"
+      - "33575:33575"
     environment:
-      KEYSPACES: default
-      NUM_SHARDS: 3
+      KEYSPACES: default,unsh
+      NUM_SHARDS: 3,1
       PORT: 33574
       VTCOMBO_BIND_HOST: 0.0.0.0
       MYSQL_BIND_HOST: 0.0.0.0
