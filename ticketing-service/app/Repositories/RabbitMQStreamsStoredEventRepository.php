@@ -42,17 +42,12 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
         });
     }
 
+    /**
+     * @throws Exception
+     */
     public function retrieveAllStartingFrom(int $startingFrom, ?string $uuid = null): LazyCollection
     {
-        if ($uuid === null) {
-            throw new Exception('Cannot retrieveAllStartingFrom without Aggregate UUID in RabbitMQ Streams');
-        }
-
-        $events = $this->rabbitMQService->readFromStream($uuid, $startingFrom);
-
-        return $events->map(function ($eventData) {
-            return $this->arrayToStoredEvent($eventData);
-        });
+        throw new Exception('not implemented');
     }
 
     public function retrieveAllAfterVersion(int $aggregateVersion, string $aggregateUuid): LazyCollection
@@ -64,9 +59,12 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
         });
     }
 
+    /**
+     * @throws Exception
+     */
     public function countAllStartingFrom(int $startingFrom, ?string $uuid = null): int
     {
-        return $this->retrieveAllStartingFrom($startingFrom, $uuid)->count();
+        throw new Exception('not implemented');
     }
 
     private function getEventClass(string $class): string
@@ -149,11 +147,7 @@ class RabbitMQStreamsStoredEventRepository implements StoredEventRepository
 
     public function getLatestAggregateVersion(string $aggregateUuid): int
     {
-        try {
-            return $this->rabbitMQService->getStreamMeta($aggregateUuid);
-        } catch (Exception) {
-            return 0;
-        }
+        return $this->rabbitMQService->getStreamMeta($aggregateUuid);
     }
 
     private function arrayToStoredEvent(array $eventData): StoredEvent
