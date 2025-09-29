@@ -39,7 +39,7 @@ return [
             'hosts' => [
                 [
                     'host' => env('RABBITMQ_HOST', 'host.docker.internal'),
-                    'port' => env('RABBITMQ_PORT', 5673),
+                    'port' => env('RABBITMQ_PORT', 5675),
                     'user' => env('RABBITMQ_USER', 'guest'),
                     'password' => env('RABBITMQ_PASSWORD', 'guest'),
                     'vhost' => env('RABBITMQ_VHOST', '/'),
