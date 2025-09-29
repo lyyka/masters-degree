@@ -78,7 +78,6 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
             $uuid,
             null,
             1000,
-        //$uuid
         );
 
         return $events->map(function ($event) {
@@ -91,20 +90,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
      */
     public function retrieveAllStartingFrom(int $startingFrom, ?string $uuid = null): LazyCollection
     {
-        if ($uuid === null) {
-            throw new Exception('Cannot retrieveAllStartingFrom without Aggregate UUID in EventStoreDB');
-        }
-
-        $events = $this->readStream->read(
-            $uuid,
-            $startingFrom,
-            1000,
-        //$uuid
-        );
-
-        return $events->map(function ($event) {
-            return $this->eventToStoredEvent($event);
-        });
+        throw new Exception("NOT IMPLEMENTED");
     }
 
     /**
@@ -132,7 +118,7 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
      */
     public function countAllStartingFrom(int $startingFrom, ?string $uuid = null): int
     {
-        return $this->retrieveAllStartingFrom($startingFrom, $uuid)->count();
+        throw new Exception("NOT IMPLEMENTED");
     }
 
     /**
@@ -226,10 +212,12 @@ class EventStoreDBStoredEventRepository implements StoredEventRepository
         return new LazyCollection($storedEvents);
     }
 
+    /**
+     * @throws Exception
+     */
     public function update(StoredEvent $storedEvent): StoredEvent
     {
-        // TODO: Implement update() method.
-        return $storedEvent;
+        throw new Exception("NOT IMPLEMENTED");
     }
 
     public function getLatestAggregateVersion(string $aggregateUuid): int
