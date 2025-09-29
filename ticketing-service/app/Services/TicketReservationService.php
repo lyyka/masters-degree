@@ -27,6 +27,7 @@ class TicketReservationService
 
         PurchaseTicketJob::dispatch(
             $ticket->uuid,
+            $ticket->event_id,
             $request->integer('quantity'),
             $request->string('first_name'),
             $request->string('last_name'),
@@ -56,7 +57,7 @@ class TicketReservationService
             throw new TicketReservationCannotBeCheckedIn();
         }
 
-        TicketAggregate::retrieve($ticketReservation->ticket_uuid)
+        TicketAggregate::retrieve($ticketReservation->event_id)
             ->checkInTicketReservation($ticketReservation->uuid)
             ->persist();
     }
@@ -70,7 +71,7 @@ class TicketReservationService
             throw new TicketReservationAlreadyCancelled();
         }
 
-        TicketAggregate::retrieve($ticketReservation->ticket_uuid)
+        TicketAggregate::retrieve($ticketReservation->event_id)
             ->cancelTicketReservation($ticketReservation->uuid)
             ->persist();
     }
@@ -89,7 +90,7 @@ class TicketReservationService
             throw new TicketReservationAlreadyCancelled();
         }
 
-        TicketAggregate::retrieve($ticketReservation->ticket_uuid)
+        TicketAggregate::retrieve($ticketReservation->event_id)
             ->updateTicketReservationHolder(
                 $ticketReservation->uuid,
                 $request->string('first_name'),

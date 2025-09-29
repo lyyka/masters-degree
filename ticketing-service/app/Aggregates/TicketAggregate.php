@@ -24,18 +24,20 @@ class TicketAggregate extends AggregateRoot
     /**
      * @throws NotEnoughTicketsAvailable
      */
-    public function purchaseTicket(int $quantity, string $holderFirstName, string $holderLastName, string $holderEmail, string $reqId): self
+    public function purchaseTicket(string $ticketUuid, int $quantity,
+                                   string $holderFirstName, string $holderLastName, string $holderEmail, string $reqId): self
     {
         $ticket = Cache::rememberForever(
-            "dbq-" . $this->uuid(),
-            fn() => Ticket::where('uuid', $this->uuid())->toBase()->firstOrFail()
+            "dbq-" . $ticketUuid,
+            fn() => Ticket::where('uuid', $ticketUuid)->toBase()->firstOrFail()
         );
 
         if ($ticket->available_quantity - $this->ticketsSold - $quantity < 0) {
             throw new NotEnoughTicketsAvailable();
         }
 
-        $this->recordThat(new TicketPurchased($this->uuid(), Str::uuid(), $quantity, $ticket->price, $holderFirstName, $holderLastName, $holderEmail, $reqId));
+        $this->recordThat(new TicketPurchased($ticketUuid, Str::uuid(), $quantity,
+            $ticket->price, $holderFirstName, $holderLastName, $holderEmail, $reqId));
 
         return $this;
     }

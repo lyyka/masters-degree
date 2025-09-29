@@ -14,6 +14,7 @@ class PurchaseTicketJob implements ShouldQueue
 
     public function __construct(
         private readonly string $ticketUuid,
+        private readonly int    $eventId,
         private readonly int    $quantity,
         private readonly string $firstName,
         private readonly string $lastName,
@@ -25,7 +26,7 @@ class PurchaseTicketJob implements ShouldQueue
 
     public function middleware(): array
     {
-        return [new WithoutOverlapping($this->ticketUuid)];
+        return [new WithoutOverlapping("event-$this->eventId")];
     }
 
     public function tries(): int
@@ -43,11 +44,12 @@ class PurchaseTicketJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $agg = TicketAggregate::retrieve($this->ticketUuid);
+        $agg = TicketAggregate::retrieve("event-$this->eventId");
         if (count($agg->getAppliedEvents()) > 20) {
             $agg->snapshot();
         }
         $agg->purchaseTicket(
+            $this->ticketUuid,
             $this->quantity,
             $this->firstName,
             $this->lastName,
